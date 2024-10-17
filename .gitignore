@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# VisualStudio config
+.vs
+
+# VisualStudio bliud
+out

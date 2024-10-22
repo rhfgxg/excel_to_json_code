@@ -1,0 +1,14 @@
+{
+  "name": "excel-to-json-code",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "nlohmann-json",
+      "version>=": "3.11.3#1"
+    },
+    {
+      "name": "xlnt",
+      "version>=": "1.5.0#4"
+    }
+  ]
+}

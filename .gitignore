@@ -36,3 +36,6 @@
 
 # VisualStudio bliud
 out
+
+# vcpkg out
+vcpkg_installed

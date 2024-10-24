@@ -18,15 +18,16 @@ endif()
 # 设置vcpkg路径
 set(VCPKG_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows")  # 替换为实际vcpkg路径
 set(VCPKG_INCLUDE "${VCPKG_DIR}/include")    # vcpkg的第三方库 include文件夹
-set(VCPKG_LIB "${VCPKG_DIR}/lib")    # vcpkg的第三方库 lib文件夹
+set(VCPKG_LIB "${VCPKG_DIR}/lib")    # vcpkg的第三方库 lib静态链接库文件夹
 set(VCPKG_BIN "${VCPKG_DIR}/bin")    # vcpkg的第三方库 dll动态链接库文件夹
 # 设置资源文件目录
 set(RESOURCE_DIR "${CMAKE_SOURCE_DIR}/test")
-
+set(TEMPLATE_DIR "${CMAKE_SOURCE_DIR}/template")
 
 # 包含自定义头文件的目录
 include_directories(
    # ${PROJECT_SOURCE_DIR}/include
+   ${VCPKG_INCLUDE}     # 指定第三方库的头文件所在目录
 )
 
 # 项目中所有自定义文件的 源文件（只需要cpp文件）的路径（.h或资源文件不需要添加）
@@ -39,31 +40,37 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 
-# 指定第三方库的头文件所在目录
-include_directories(${VCPKG_INCLUDE})
-
 # 指定库链接文件所在文件夹的路径（lib文件或dll文件）
 # link_directories(${VCPKG_LIB})
 
 # 如果需要链接第三方库，可以在这里指定（项目名，库文件权限，库名列表）
-target_link_libraries(${PROJECT_NAME} PRIVATE 
-    "${VCPKG_LIB}/xlnt.lib"
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    "${VCPKG_LIB}/xlsxio_read.lib" # xlsxio库
     # nlohmann # 是一个头文件库，不存在lib文件，不需要链接
 )
 
-# 将 资源文件夹 复制到编译输出目录
+
+# 将 资源文件夹 和 模板文件夹 复制到编译输出目录
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${RESOURCE_DIR}"         # 资源文件夹
     $<TARGET_FILE_DIR:${PROJECT_NAME}>/test # 目标目录
 )
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${TEMPLATE_DIR}"         # 模板文件夹
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/template # 目标目录
+)
+
 
 # 创建一个列表，包含所有需要复制的 .dll 文件
 set(DLL_FILES
-    "${VCPKG_BIN}/xlnt.dll"
+    "${VCPKG_BIN}/xlsxio_read.dll"  # xlsxio库
+    "${VCPKG_BIN}/bz2.dll"          # xlsxio支持文件
+    "${VCPKG_BIN}/libexpat.dll"     # xlsxio支持文件
 )
 
-# 遍历列表，将所有 .dll 文件，逐一复制到可执行文件所在目录
+# 遍历 dll列表，将所有 .dll 文件，逐一复制到可执行文件所在目录
 foreach(DLL_FILE ${DLL_FILES})
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

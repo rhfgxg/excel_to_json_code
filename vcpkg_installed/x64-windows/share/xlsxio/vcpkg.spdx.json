@@ -1,0 +1,132 @@
+{
+  "$schema": "https://raw.githubusercontent.com/spdx/spdx-spec/v2.2.1/schemas/spdx-schema.json",
+  "spdxVersion": "SPDX-2.2",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "documentNamespace": "https://spdx.org/spdxdocs/xlsxio-x64-windows-0.2.34-bd9d4de2-2fc1-41a6-8c34-613912fb969e",
+  "name": "xlsxio:x64-windows@0.2.34 5920398ffd2ce386b40eea27ee4153d3b325cd28e88609b42f31b176c2cc413f",
+  "creationInfo": {
+    "creators": [
+      "Tool: vcpkg-2024-09-30-ab8988503c7cffabfd440b243a383c0a352a023d"
+    ],
+    "created": "2024-10-23T08:38:38Z"
+  },
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "GENERATES",
+      "relatedSpdxElement": "SPDXRef-binary"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-0"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-binary",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-0",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-1",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-2",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    }
+  ],
+  "packages": [
+    {
+      "name": "xlsxio",
+      "SPDXID": "SPDXRef-port",
+      "versionInfo": "0.2.34",
+      "downloadLocation": "git+https://github.com/microsoft/vcpkg@fd38fc13e5e2b58d149261e8d692e1df7f93b88a",
+      "homepage": "https://github.com/brechtsanders/xlsxio",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "description": "Cross-platform C library for reading values from and writing values to .xlsx files",
+      "comment": "This is the port (recipe) consumed by vcpkg."
+    },
+    {
+      "name": "xlsxio:x64-windows",
+      "SPDXID": "SPDXRef-binary",
+      "versionInfo": "5920398ffd2ce386b40eea27ee4153d3b325cd28e88609b42f31b176c2cc413f",
+      "downloadLocation": "NONE",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "comment": "This is a binary package built by vcpkg."
+    },
+    {
+      "SPDXID": "SPDXRef-resource-1",
+      "name": "brechtsanders/xlsxio",
+      "downloadLocation": "git+https://github.com/brechtsanders/xlsxio@0.2.34",
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "67b9a4e275446f3ca08e91d31f05236855e761c06ed84ea3aea8c25a7cd6729191f6c95b9efe07392775a75e2713e7ec2c6d216b8d310e7b46bee531cccba8be"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "fileName": "./C:/Users/lhw/AppData/Local/vcpkg/registries/git-trees/fd38fc13e5e2b58d149261e8d692e1df7f93b88a/fix-dependencies.patch",
+      "SPDXID": "SPDXRef-file-0",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "3790626208f3ec9897519871239b5d5e57698bb0138f401c42cc25f55d41c3c0"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./C:/Users/lhw/AppData/Local/vcpkg/registries/git-trees/fd38fc13e5e2b58d149261e8d692e1df7f93b88a/portfile.cmake",
+      "SPDXID": "SPDXRef-file-1",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ab7349674dbfad3fc7e64b21fd01e1249bea5843849fd5ac6c31781aebac8cda"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./C:/Users/lhw/AppData/Local/vcpkg/registries/git-trees/fd38fc13e5e2b58d149261e8d692e1df7f93b88a/vcpkg.json",
+      "SPDXID": "SPDXRef-file-2",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "930d570d0d37a855e98d1c895cf0da06781f2044c841d587d247d5508810ce80"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+// {{class_name}}.cpp
+#include "{{class_name}}.h"
+
+// 构造函数：从 JSON 数据初始化对象
+{{class_name}}::{{class_name}}(const nlohmann::json &json_data) 
+{
+    {{#each fields}}
+    if (json_data.contains("{{name}}")) {
+        {{name}} = json_data["{{name}}"].get<{{type}}>();
+    }
+    {{/each}}
+}
+
+// 将对象序列化为 JSON
+nlohmann::json {{class_name}}::to_json() const 
+{
+    nlohmann::json json_data;
+    {{#each fields}}
+    json_data["{{name}}"] = {{name}};
+    {{/each}}
+    return json_data;
+}
+
+// 字段访问器实现
+{{#each fields}}
+{{type}} {{class_name}}::get_{{name}}() const 
+{
+    return {{name}};
+}
+
+void {{class_name}}::set_{{name}}(const {{type}} &value) 
+{
+    {{name}} = value;
+}
+{{/each}}

@@ -1,0 +1,29 @@
+// {{class_name}}.h
+#ifndef {{class_name | upper}}_H
+#define {{class_name | upper}}_H
+
+#include <string>
+#include <nlohmann /json.hpp>
+
+class {{class_name}} 
+{
+public:
+    // 从 JSON 数据构造对象
+    explicit {{class_name}}(const nlohmann::json &json_data);
+
+    // 将对象序列化为 JSON 数据
+    nlohmann::json to_json() const;
+
+    // 字段访问器
+    {{#each fields}}
+    {{type}} get_{{name}}() const;
+    void set_{{name}}(const {{type}} &value);
+    {{/each}}
+
+private:
+    {{#each fields}}
+    {{type}} {{name}}; // {{comment}}
+    {{/each}}
+};
+
+#endif // {{class_name | upper}}_H

@@ -1,17 +1,20 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <sstream>  // 字符串流
 #include <fstream>  // 文件流
 #include <filesystem>   // c++17引入，遍历文件夹及子文件夹
+#include <regex>    // 正则表达式库
 // 第三方库
 #include <xlsxio_read.h> // 操作excel文件
 #include <nlohmann/json.hpp>    // 操作json文件
 
 // 遍历excel表，将数据序列化为json
 // 参数：excel表路径，生成json文件路径
-bool to_json(const std::string& excel_file_path, const std::string& json_path);
+bool excel_to_json(const std::string& excel_file_path, const std::string& json_path);
 
 // 转c++
-bool to_cpp(const std::string& excel_file_path, const std::string& code_path);
+bool excel_to_cpp(const std::string& excel_file_path, const std::string& code_path);
 
 int main(int argc, char* argv[]) 
 {
@@ -43,11 +46,11 @@ int main(int argc, char* argv[])
         if (entry.path().extension() == ".xlsx")    // 查找扩展名为 xlsx的文件
         {
             std::string excel_file = entry.path().string(); // 得到文件的详细路径
-            to_json(excel_file, path_json_out); // 转换为json文件
+            excel_to_json(excel_file, path_json_out); // 转换为json文件
 
             if (code_mode == "cpp")
             {
-                to_cpp(excel_file, path_code_out);
+                excel_to_cpp(excel_file, path_code_out);
             }
             else
             {
@@ -62,7 +65,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-bool to_json(const std::string& excel_file_path, const std::string& json_path)
+bool excel_to_json(const std::string& excel_file_path, const std::string& json_path)
 {
     try
     {
@@ -172,109 +175,112 @@ bool to_json(const std::string& excel_file_path, const std::string& json_path)
     }
 }
 
-bool to_cpp(const std::string& excel_file_path, const std::string& code_path)
+bool excel_to_cpp(const std::string& excel_file_path, const std::string& code_path)
 {
-    // 打开 .xlsx 文件
-    xlsxioreader xlsxioread;
-    if ((xlsxioread = xlsxioread_open(excel_file_path.c_str())) == NULL) {
-        std::cerr << "无法打开 Excel 文件: " << excel_file_path << std::endl;
-        return false;
-    }
+    try {
+        // 1. 打开 Excel 文件并读取表结构
+        xlsxioreader xlsxioread;
+        if ((xlsxioread = xlsxioread_open(excel_file_path.c_str())) == NULL) {
+            std::cerr << "打开 Excel 文件失败: " << excel_file_path << std::endl;
+            return false;
+        }
 
-    // 获取第一个表单名
-    const char* sheetname = NULL;
-    xlsxioreadersheetlist sheetlist;
-    if ((sheetlist = xlsxioread_sheetlist_open(xlsxioread)) != NULL) {
-        sheetname = xlsxioread_sheetlist_next(sheetlist);
+        const char* sheet_name = NULL;
+        xlsxioreadersheet sheet;
+        std::vector<std::string> headers, types, comments;
+
+        // 获取第一个表单名
+        xlsxioreadersheetlist sheetlist = xlsxioread_sheetlist_open(xlsxioread);
+        if ((sheet_name = xlsxioread_sheetlist_next(sheetlist)) == NULL) {
+            std::cerr << "未找到表单。" << std::endl;
+            return false;
+        }
         xlsxioread_sheetlist_close(sheetlist);
-    }
-    if (sheetname == NULL) {
-        std::cerr << "无法获取表单名称" << std::endl;
-        xlsxioread_close(xlsxioread);
-        return false;
-    }
 
-    // 打开第一个表单
-    xlsxioreadersheet sheet;
-    if ((sheet = xlsxioread_sheet_open(xlsxioread, sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS)) == NULL) {
-        std::cerr << "无法打开表单: " << sheetname << std::endl;
-        xlsxioread_close(xlsxioread);
-        return false;
-    }
+        // 打开第一个表单，跳过空行
+        sheet = xlsxioread_sheet_open(xlsxioread, sheet_name, XLSXIOREAD_SKIP_EMPTY_ROWS);
 
-    // 准备容器来存储字段名和类型
-    std::vector<std::string> field_names;
-    std::vector<std::string> field_types;
-
-    // 读取表单数据
-    char* value;
-    int row_index = 0;
-
-    // 读取第一行（字段名）
-    if (xlsxioread_sheet_next_row(sheet)) {
-        while ((value = xlsxioread_sheet_next_cell(sheet)) != NULL) {
-            field_names.push_back(value);
-            xlsxioread_free(value);
+        // 读取字段名（第一行）
+        char* value;
+        if (xlsxioread_sheet_next_row(sheet)) {
+            while ((value = xlsxioread_sheet_next_cell(sheet)) != NULL) {
+                headers.push_back(value);
+                xlsxioread_free(value);
+            }
         }
-        row_index++;
-    }
 
-    // 读取第二行（字段类型）
-    if (xlsxioread_sheet_next_row(sheet)) {
-        while ((value = xlsxioread_sheet_next_cell(sheet)) != NULL) {
-            field_types.push_back(value);
-            xlsxioread_free(value);
+        // 读取数据类型（第二行）
+        if (xlsxioread_sheet_next_row(sheet)) {
+            while ((value = xlsxioread_sheet_next_cell(sheet)) != NULL) {
+                types.push_back(value);
+                xlsxioread_free(value);
+            }
         }
-        row_index++;
-    }
 
-    // 检查字段名和字段类型数量是否匹配
-    if (field_names.size() != field_types.size()) {
-        std::cerr << "字段名和字段类型数量不匹配" << std::endl;
+        // 读取注释（第三行）
+        if (xlsxioread_sheet_next_row(sheet)) {
+            while ((value = xlsxioread_sheet_next_cell(sheet)) != NULL) {
+                comments.push_back(value);
+                xlsxioread_free(value);
+            }
+        }
+
+        // 关闭表单和 Excel 文件
         xlsxioread_sheet_close(sheet);
         xlsxioread_close(xlsxioread);
+
+        // 2. 读取模板文件内容
+        std::ifstream header_template("cpp_h.hbs");
+        std::ifstream cpp_template("cpp_cpp.hbs");
+        std::stringstream header_buffer, cpp_buffer;
+
+        header_buffer << header_template.rdbuf();
+        cpp_buffer << cpp_template.rdbuf();
+
+        std::string header_template_str = header_buffer.str();
+        std::string cpp_template_str = cpp_buffer.str();
+
+        // 3. 替换模板标记
+        std::string class_name = sheet_name;
+        header_template_str = std::regex_replace(header_template_str, std::regex("\\{\\{CLASS_NAME\\}\\}"), class_name);
+        cpp_template_str = std::regex_replace(cpp_template_str, std::regex("\\{\\{CLASS_NAME\\}\\}"), class_name);
+
+        // 替换 {{FIELDS}}
+        std::string fields_str;
+        for (size_t i = 0; i < headers.size(); ++i) {
+            fields_str += "    " + types[i] + " " + headers[i] + "; // " + comments[i] + "\n";
+        }
+        header_template_str = std::regex_replace(header_template_str, std::regex("\\{\\{FIELDS\\}\\}"), fields_str);
+
+        // 4. 保存生成的代码到头文件和实现文件
+        std::string header_file_path = code_path + class_name + ".h";
+        std::ofstream header_file(header_file_path);
+        if (header_file.is_open()) {
+            header_file << header_template_str;
+            header_file.close();
+            std::cout << "生成头文件: " << header_file_path << std::endl;
+        }
+        else {
+            std::cerr << "无法创建头文件: " << header_file_path << std::endl;
+            return false;
+        }
+
+        std::string cpp_file_path = code_path + class_name + ".cpp";
+        std::ofstream cpp_file(cpp_file_path);
+        if (cpp_file.is_open()) {
+            cpp_file << cpp_template_str;
+            cpp_file.close();
+            std::cout << "生成实现文件: " << cpp_file_path << std::endl;
+        }
+        else {
+            std::cerr << "无法创建实现文件: " << cpp_file_path << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "生成 C++ 代码时出错: " << ex.what() << std::endl;
         return false;
     }
-
-    // 关闭表单和 Excel 文件
-    xlsxioread_sheet_close(sheet);
-    xlsxioread_close(xlsxioread);
-
-    // 生成类名，假设类名为表单名的首字母大写
-    std::string class_name = sheetname;
-    class_name[0] = toupper(class_name[0]);
-
-    // 构造输出的代码文件路径
-    std::string code_file_path = code_path + class_name + ".h";
-
-    // 打开文件流
-    std::ofstream outfile(code_file_path);
-    if (!outfile.is_open()) {
-        std::cerr << "无法创建文件: " << code_file_path << std::endl;
-        return false;
-    }
-
-    // 写入 C++ 类模板到文件
-    outfile << "#ifndef " << class_name << "_H\n";
-    outfile << "#define " << class_name << "_H\n\n";
-    outfile << "#include <string>\n\n";
-    outfile << "class " << class_name << " {\n";
-    outfile << "public:\n";
-    outfile << "    // 构造函数\n";
-    outfile << "    " << class_name << "() = default;\n\n";
-    outfile << "    // 成员变量\n";
-
-    // 写入成员变量
-    for (size_t i = 0; i < field_names.size(); ++i) {
-        outfile << "    " << field_types[i] << " " << field_names[i] << ";\n";
-    }
-
-    outfile << "\n};\n\n";
-    outfile << "#endif //" << class_name << "_H\n";
-
-    // 关闭文件流
-    outfile.close();
-
-    std::cout << "C++ 类定义已成功生成: " << code_file_path << std::endl;
-    return true;
 }

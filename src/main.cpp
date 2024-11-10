@@ -46,8 +46,11 @@ int main(int argc, char* argv[])
         if (entry.path().extension() == ".xlsx")    // 查找扩展名为 xlsx的文件
         {
             std::string excel_file = entry.path().string(); // 得到文件的详细路径
-            excel_to_json(excel_file, path_json_out); // 转换为json文件
 
+            // 将表格转成 json文件
+            excel_to_json(excel_file, path_json_out);
+
+            // 将表格转成语言类定义
             if (code_mode == "cpp")
             {
                 excel_to_cpp(excel_file, path_code_out);
@@ -59,9 +62,6 @@ int main(int argc, char* argv[])
             
         }
     }
-
-    // 根据传入的代码生成模式，选择对应的执行函数
-
     return 0;
 }
 
